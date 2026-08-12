@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/ingydotnet/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/pmalacho-mit/suede.git
+	branch = dependency/main/workflows
+	commit = 1339e32126edf876d960a78ff13666f55a3cedb4
+	parent = 5827d8057d14be9f94b69f7f8cac17336070c120
+	method = merge
+	cmdver = 0.4.9

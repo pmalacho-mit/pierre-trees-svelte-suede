@@ -143,6 +143,16 @@
 </div>
 
 <style>
+  /*
+   * Every colour chains through the tree's own resolved variables before it
+   * reaches a default, so a Shiki theme or a `--trees-*-override` palette
+   * carries into the menu without anyone wiring it up. The tree declares those
+   * on `:host`, and this is a light-DOM child of that host, so they inherit.
+   *
+   * A menu is a raised surface, which is why it borrows the tree's input
+   * colours rather than its page background — the one variable a palette is
+   * free to make transparent.
+   */
   div {
     position: absolute;
     top: 100%;
@@ -153,15 +163,24 @@
     gap: 1px;
     min-width: var(--trees-menu-min-width, 180px);
     padding: 0.25rem;
-    color: var(--trees-menu-fg, light-dark(oklch(14.5% 0 0), oklch(98.5% 0 0)));
-    background: var(--trees-menu-bg, light-dark(oklch(100% 0 0), oklch(20.5% 0 0)));
+    color: var(
+      --trees-menu-fg,
+      var(--trees-search-fg, light-dark(oklch(14.5% 0 0), oklch(98.5% 0 0)))
+    );
+    background: var(
+      --trees-menu-bg,
+      var(--trees-search-bg, light-dark(oklch(100% 0 0), oklch(20.5% 0 0)))
+    );
     background-clip: padding-box;
     border: 1px solid
       var(
         --trees-menu-border-color,
-        light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.15))
+        var(
+          --trees-border-color,
+          light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.15))
+        )
       );
-    border-radius: var(--trees-menu-border-radius, 0.5rem);
+    border-radius: var(--trees-menu-border-radius, var(--trees-border-radius, 0.5rem));
     box-shadow: var(
       --trees-menu-shadow,
       0 10px 15px -3px light-dark(rgb(0 0 0 / 0.1), rgb(0 0 0 / 0.25)),
@@ -169,12 +188,9 @@
     );
     font-family: var(
       --trees-menu-font-family,
-      system-ui,
-      -apple-system,
-      "Segoe UI",
-      sans-serif
+      var(--trees-font-family, system-ui, -apple-system, "Segoe UI", sans-serif)
     );
-    font-size: var(--trees-menu-font-size, 0.875rem);
+    font-size: var(--trees-menu-font-size, var(--trees-font-size, 0.875rem));
     animation: open 120ms ease-out;
   }
 
@@ -201,12 +217,12 @@
     align-items: center;
     padding: 0.375rem 0.75rem;
     font: inherit;
-    line-height: 1.25rem;
+    line-height: 1.4;
     color: inherit;
     text-align: left;
     background: none;
     border: 0;
-    border-radius: 0.375rem;
+    border-radius: var(--trees-menu-border-radius, var(--trees-border-radius, 0.375rem));
     cursor: default;
     outline: none;
     user-select: none;
@@ -217,14 +233,17 @@
   button:focus {
     background: var(
       --trees-menu-hover-bg,
-      light-dark(oklch(97% 0 0), oklch(26.9% 0 0))
+      var(--trees-bg-muted, light-dark(oklch(97% 0 0), oklch(26.9% 0 0)))
     );
   }
 
   button.danger {
     color: var(
       --trees-menu-danger-fg,
-      light-dark(oklch(57.7% 0.245 27.325), oklch(70.4% 0.191 22.216))
+      var(
+        --trees-status-deleted,
+        light-dark(oklch(57.7% 0.245 27.325), oklch(70.4% 0.191 22.216))
+      )
     );
   }
 
@@ -239,7 +258,10 @@
     margin: 0.25rem -0.25rem;
     background: var(
       --trees-menu-border-color,
-      light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.15))
+      var(
+        --trees-border-color,
+        light-dark(rgb(0 0 0 / 0.1), rgb(255 255 255 / 0.15))
+      )
     );
     border: 0;
   }

@@ -129,3 +129,22 @@ export const asStyle = (
     .join("; ");
   return text.length === 0 ? undefined : text;
 };
+
+/** `themeToTreeStyles` speaks React's camelCase style keys; CSS text needs kebab-case. */
+const cssProperty = (key: string): string =>
+  key.startsWith("--")
+    ? key
+    : key.replace(/[A-Z]/g, (upper) => `-${upper.toLowerCase()}`);
+
+/** A `themeToTreeStyles` result as a `style` attribute, host colours included. */
+export const asDeclarations = (styles: Record<string, string>): string =>
+  Object.entries(styles)
+    .filter(([, value]) => value !== "")
+    .map(([property, value]) => `${cssProperty(property)}: ${value}`)
+    .join("; ");
+
+/** The same result as component props — only the custom properties are ones. */
+export const asProps = (styles: Record<string, string>): Variables =>
+  Object.fromEntries(
+    Object.entries(styles).filter(([property]) => isVariable(property)),
+  );

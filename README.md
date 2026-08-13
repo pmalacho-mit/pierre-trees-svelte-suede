@@ -34,8 +34,9 @@ Anything not mirrored here is one property away: `model.tree` is the underlying
 4. [Styling](#4-styling)
 5. [`ContextMenu`](#5-contextmenu)
 6. [Events](#6-events)
-7. [Input, icons, theming, density](#7-input-icons-theming-density)
-8. [Types](#8-types)
+7. [Themes](#7-themes)
+8. [Input, icons, density](#8-input-icons-density)
+9. [Types](#9-types)
 
 ---
 
@@ -305,11 +306,30 @@ const actions = [
 `entries.add(model, item, "file" \| "folder")`, `entries.rename(model, item)`,
 `entries.remove(model, item)` — for building actions of your own.
 
-The surface follows the page's `color-scheme` and takes overrides the same way
-the tree does (`--trees-menu-bg`, `--trees-menu-fg`, `--trees-menu-border-color`,
-`--trees-menu-hover-bg`, `--trees-menu-danger-fg`, `--trees-menu-border-radius`,
-`--trees-menu-shadow`, `--trees-menu-min-width`, `--trees-menu-font-family`,
-`--trees-menu-font-size`), typed as `ContextMenu.Style`.
+### It wears whatever the tree is wearing
+
+Every colour chains through the tree's own resolved variables before reaching a
+default, so a [theme](#7-themes) or a `--trees-*-override` palette carries into
+the menu with nothing to wire up:
+
+| The menu's        | comes from                                              |
+| ----------------- | ------------------------------------------------------- |
+| background        | `--trees-search-bg` — a menu is a raised surface, like the search field, which is the one colour a palette is free to make transparent |
+| text              | `--trees-search-fg`                                     |
+| border, divider   | `--trees-border-color`                                  |
+| hover             | `--trees-bg-muted`                                      |
+| destructive       | `--trees-status-deleted`, the theme's git-deleted red    |
+| radius, font      | `--trees-border-radius`, `--trees-font-family`, `--trees-font-size` |
+
+That works because the tree declares those on `:host` and the menu is slotted
+from the host's light DOM, so they inherit. Outside a tree it falls back to a
+neutral surface that follows the page's `color-scheme`.
+
+Each is still overridable — `--trees-menu-bg`, `--trees-menu-fg`,
+`--trees-menu-border-color`, `--trees-menu-hover-bg`, `--trees-menu-danger-fg`,
+`--trees-menu-border-radius`, `--trees-menu-shadow`, `--trees-menu-min-width`,
+`--trees-menu-font-family`, `--trees-menu-font-size` — typed as
+`ContextMenu.Style`, and props the same way the tree's are.
 
 It needs no coordinates: the tree slots it into an anchor element it has already
 positioned over the row, so the menu only says which corner of that anchor to
@@ -348,10 +368,60 @@ callbacks rather than replacing them, so a config that already supplies
 
 ---
 
-## 7. Input, icons, theming, density
+## 7. Themes
+
+`themes` is the catalog behind [trees.software's theming
+section](https://trees.software/#theming) — every Pierre and Shiki theme, 75 of
+them, each behind its own dynamic import.
+
+It is a **separate entry point**, so importing the library never reaches it and
+importing it only carries the themes actually loaded:
+
+```svelte
+<script lang="ts">
+  import { Tree } from "<path>/pierre-trees-svelte-suede";
+  import { themes } from "<path>/pierre-trees-svelte-suede/themes";
+
+  const model = new Tree.Model({ paths });
+  let wearing = $state("dracula" as const);
+</script>
+
+{#await themes.styles(wearing) then style}
+  <Tree.Component {model} {...style} />
+{/await}
+```
+
+| Call                    | Gives                                                          |
+| ----------------------- | -------------------------------------------------------------- |
+| `themes.names(filter?)` | Theme names, optionally by `scheme` or `collection`             |
+| `themes.all(filter?)`   | The same as descriptors — `name`, `scheme`, `collection`, `displayName` |
+| `themes.describe(name)` | One descriptor, for the row of a picker                        |
+| `themes.load(name)`     | The theme itself, fetched once and remembered                  |
+| `themes.styles(name)`   | `Tree.Style` — the `--trees-theme-*` props, ready to spread     |
+| `themes.css(name)`      | The same as a `style` attribute, host colours included          |
+
+Names are a literal union, so `themes.load("draclua")` is a type error rather
+than a runtime one. A picker is `themes.all({ scheme: "dark" })`.
+
+For a theme you already have — one resolved by Shiki yourself, or written by
+hand — `theme` is the same mapping without the catalog:
 
 ```ts
-import { density, icons, input, theme } from "<path>/pierre-trees-svelte-suede";
+theme.props(source); // Tree.Style, to spread
+theme.css(source); // a style attribute string
+theme.styles(source); // the raw themeToTreeStyles result
+```
+
+Both routes end in the tree's own `--trees-theme-*` variables, which is why a
+theme reaches everything that reads them — including the
+[context menu](#5-contextmenu).
+
+---
+
+## 8. Input, icons, density
+
+```ts
+import { density, icons, input } from "<path>/pierre-trees-svelte-suede";
 
 const prepared = input.prepare(paths, { flattenEmptyDirectories: false });
 const presorted = input.presorted(alreadySortedPaths);
@@ -359,20 +429,16 @@ const presorted = input.presorted(alreadySortedPaths);
 icons.spriteSheet("standard"); // the built-in <symbol> markup
 icons.resolver(config).resolveIcon("file-tree-icon-file", "src/App.svelte");
 
-theme.styles(shikiTheme); // { "--trees-theme-…": "…" } for style: directives
-theme.css(shikiTheme); // the same, as a style attribute string
-
 density.presets.compact.itemHeight;
 density.defaultItemHeight;
 ```
 
 Preparing input sorts and flattens once, so the same result can seed many trees
-or many resets. For styling, start with the host's CSS custom properties and
-`theme`, and keep `unsafeCSS` for what those cannot reach.
+or many resets.
 
 ---
 
-## 8. Types
+## 9. Types
 
 Everything hangs off the `Tree` namespace, so one import covers the surface:
 

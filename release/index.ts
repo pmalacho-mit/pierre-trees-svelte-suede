@@ -41,9 +41,20 @@ import type {
 } from "./events";
 import type { Options as TreeOptions } from "./options";
 
+/**
+ * `handle.isDirectory()` answers the question but does not narrow the union,
+ * because TypeScript reads return types, not literal return values.
+ */
+const isDirectory = (
+  handle: FileTreeItemHandle | null,
+): handle is FileTreeDirectoryHandle => handle !== null && handle.isDirectory();
+
 export const Tree = {
   Model: TreeModel,
   Component: TreeComponent,
+  isDirectory,
+  isFile: (handle: FileTreeItemHandle | null): handle is FileTreeFileHandle =>
+    handle !== null && !handle.isDirectory(),
 };
 
 export namespace Tree {

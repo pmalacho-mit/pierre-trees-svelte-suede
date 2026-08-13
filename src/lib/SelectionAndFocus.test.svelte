@@ -135,8 +135,8 @@
     await mounted(delay, model);
 
     const directory = model.item("src/components/");
-    note("`isDirectory()` narrows the handle, so `expand` and `collapse` typecheck.");
-    if (!directory?.isDirectory()) throw new Error("expected a directory");
+    note("`Tree.isDirectory` narrows the handle, so `expand` and `collapse` typecheck.");
+    if (!Tree.isDirectory(directory)) throw new Error("expected a directory");
 
     expect(directory.isExpanded()).toBe(true);
     directory.collapse();

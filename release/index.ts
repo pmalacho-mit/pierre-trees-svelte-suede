@@ -43,6 +43,7 @@ import type {
 } from "./ContextMenu.svelte";
 import type { Path as TreePath } from "./model.svelte";
 import type { ContextMenuTrigger } from "./composition";
+import { asDeclarations, asProps } from "./variables";
 import type { VariableName, Variables } from "./variables";
 import type {
   Events as TreeEvents,
@@ -131,19 +132,15 @@ export const input = {
   presorted: preparePresortedFileTreeInput,
 };
 
-/** `themeToTreeStyles` speaks React's camelCase style keys; CSS text needs kebab-case. */
-const cssProperty = (key: string): string =>
-  key.startsWith("--")
-    ? key
-    : key.replace(/[A-Z]/g, (upper) => `-${upper.toLowerCase()}`);
-
 export const theme = {
+  /** The whole mapping, camelCase host styles included. */
   styles: themeToTreeStyles,
+  /** Just the custom properties, ready to spread onto `Tree.Component`. */
+  props: (source: TreeThemeInput): Variables =>
+    asProps(themeToTreeStyles(source)),
+  /** The whole mapping as a `style` attribute. */
   css: (source: TreeThemeInput): string =>
-    Object.entries(themeToTreeStyles(source))
-      .filter(([, value]) => value !== "")
-      .map(([property, value]) => `${cssProperty(property)}: ${value}`)
-      .join("; "),
+    asDeclarations(themeToTreeStyles(source)),
 };
 
 export const icons = {

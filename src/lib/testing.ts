@@ -53,6 +53,10 @@ export const rendered = {
       .querySelector<HTMLSlotElement>('slot[name="context-menu"]')
       ?.assignedElements() ?? [],
 
+  /** The menu itself, past whatever wrappers Svelte put in between. */
+  contextMenu: (model: Tree.Model): HTMLElement | null =>
+    rendered.contextMenuSlot(model)[0]?.querySelector('[role="menu"]') ?? null,
+
   styleText: (model: Tree.Model): string =>
     [...shadowOf(model).querySelectorAll("style")]
       .map((style) => style.textContent ?? "")
@@ -78,9 +82,8 @@ export const mounted = (wait: Wait, model: Tree.Model): Promise<void> =>
 /**
  * The tree lives in a shadow root, where `@storybook/test`'s `userEvent` cannot
  * focus an element, so its own listeners are driven with real events instead.
- */
-/**
- * The tree anchors a right-click menu to the pointer, so the event has to carry
+ *
+ * A right-click menu is anchored to the pointer, so the event has to carry
  * where it happened; without coordinates the menu lands at the viewport origin.
  */
 export const rightClick = (element: HTMLElement): { x: number; y: number } => {
@@ -119,6 +122,26 @@ export const typeInto = (input: HTMLInputElement, value: string): void => {
   input.value = value;
   input.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
 };
+
+const painted = (color: string, within: HTMLElement): string => {
+  const probe = document.createElement("span");
+  probe.style.color = color;
+  within.append(probe);
+  const computed = getComputedStyle(probe).color;
+  probe.remove();
+  return computed;
+};
+
+/** `getComputedStyle` answers in `rgb()`, so an expectation has to speak it too. */
+export const asRgb = (color: string): string => painted(color, document.body);
+
+/**
+ * A custom property computes to an unresolved token stream, so reading one off
+ * an element says nothing about the colour it paints. Evaluating `var()` where
+ * the element lives is what resolves the `-override` → theme → default chain.
+ */
+export const resolvedColor = (within: HTMLElement, variable: string): string =>
+  painted(`var(${variable})`, within);
 
 export const pressKey = (element: HTMLElement, key: string): void => {
   element.dispatchEvent(

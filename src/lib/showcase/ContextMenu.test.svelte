@@ -73,7 +73,7 @@
         .toEqual(["New file", "New folder", "Rename", "Delete"]);
 
       note("The tree slots it into an anchor already positioned over the row, so it needs no coordinates of its own.");
-      const placed = menu?.firstElementChild?.getBoundingClientRect();
+      const placed = rendered.contextMenu(model)?.getBoundingClientRect();
       const near = clickedAt ?? {
         x: contextMenuTrigger(model)?.getBoundingClientRect().right ?? 0,
         y: row.getBoundingClientRect().bottom,

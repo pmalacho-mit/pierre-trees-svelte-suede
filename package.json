@@ -13,23 +13,25 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
   },
   "devDependencies": {
+    "@storybook/test": "^8.6.14",
     "@sveltejs/adapter-auto": "^7.0.1",
     "@sveltejs/kit": "^2.63.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
-    "svelte-check": "^4.6.0",
-    "typescript": "~5.9.3",
-    "vite": "^8.0.16",
-    "@storybook/test": "^8.6.14",
     "@types/dockerode": "^4.0.1",
     "@types/node": "^25.6.0",
     "dockerode": "^5.0.0",
-    "dockview-core": "^4.11.0",
     "dockview": "^4.11.0",
+    "dockview-core": "^4.11.0",
     "html-to-image": "^1.11.13",
-    "tsx": "^4.21.0"
+    "svelte-check": "^4.6.0",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.3",
+    "vite": "^8.0.16"
   },
   "dependencies": {
+    "@pierre/theme": "^2.0.0",
     "@pierre/trees": "^1.0.0-beta.6",
+    "@shikijs/themes": "^4.4.3",
     "svelte": "^5.43.5"
   }
 }

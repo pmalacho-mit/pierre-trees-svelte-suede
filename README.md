@@ -68,6 +68,11 @@ virtualization, accessibility, icon sets, Shiki themes, CSS-variable styling and
 density. They use the same file list, palettes and expanded paths the Pierre
 docs do, so a panel here should look like the panel there.
 
+The theming tests are the ones to read if you change anything about colour: they
+assert that a theme loaded from the catalog reaches the tree *and* the context
+menu, and that `Theming.test.svelte` fails outright if `@shikijs/themes` or
+`@pierre/theme` gains or loses a theme.
+
 The menu those examples use is not part of the showcase — it graduated into
 [`release/ContextMenu.svelte`](./release/ContextMenu.svelte), since it is the
 menu most explorers want and nothing else in the library depends on it. A

@@ -3,23 +3,30 @@
   import type { HTMLAttributes } from "svelte/elements";
   import type { ContextMenuItem, ContextMenuOpenContext } from "@pierre/trees";
   import type { Model } from "./model.svelte";
+  import type { Variables } from "./variables";
 
-  export type Props = Omit<HTMLAttributes<HTMLElement>, "children"> & {
-    model: Model;
-    header?: Snippet;
-    contextMenu?: Snippet<
-      [item: ContextMenuItem, context: ContextMenuOpenContext]
-    >;
-  };
+  export type Props = Omit<HTMLAttributes<HTMLElement>, "children"> &
+    Variables & {
+      model: Model;
+      header?: Snippet;
+      contextMenu?: Snippet<
+        [item: ContextMenuItem, context: ContextMenuOpenContext]
+      >;
+    };
 </script>
 
 <script lang="ts">
   import { composedWithSlots, type ContextMenuTrigger } from "./composition";
+  import { asStyle, partition } from "./variables";
 
-  let { model, header, contextMenu, ...host }: Props = $props();
+  let { model, header, contextMenu, style, ...rest }: Props = $props();
 
   let container = $state<HTMLElement>();
   let trigger = $state<ContextMenuTrigger>();
+
+  // `--x="y"` on a component is compiled into an inherited declaration rather
+  // than a prop, so these only arrive when spread; both routes reach the tree.
+  const { declarations, attributes } = $derived(partition(rest));
 
   const baseline = $derived(model.tree.getComposition());
 
@@ -49,7 +56,8 @@
 
 <file-tree-container
   bind:this={container}
-  {...host}
+  {...attributes}
+  style={asStyle(declarations, style)}
   style:--trees-item-height="{model.tree.getItemHeight()}px"
   style:--trees-density-override={model.tree.getDensityFactor()}
 >

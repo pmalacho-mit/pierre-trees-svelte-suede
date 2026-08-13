@@ -32,10 +32,18 @@ import {
   type TreeThemeInput,
 } from "@pierre/trees";
 import TreeComponent from "./Tree.svelte";
+import ContextMenuComponent, { standardActions } from "./ContextMenu.svelte";
 import { Model as TreeModel } from "./model.svelte";
+import { entries as entryMutations } from "./entries";
 import type { Props as TreeProps } from "./Tree.svelte";
+import type {
+  Action as MenuAction,
+  Props as MenuProps,
+  Variables as MenuVariables,
+} from "./ContextMenu.svelte";
 import type { Path as TreePath } from "./model.svelte";
 import type { ContextMenuTrigger } from "./composition";
+import type { VariableName, Variables } from "./variables";
 import type {
   Events as TreeEvents,
   Handlers as TreeHandlers,
@@ -62,6 +70,8 @@ export const Tree = {
 export namespace Tree {
   export type Model = TreeModel;
   export type Props = TreeProps;
+  export type Variable = VariableName;
+  export type Style = Variables;
   export type Options = TreeOptions;
   export type Path = TreePath;
   export type Events = TreeEvents;
@@ -95,6 +105,26 @@ export namespace Tree {
   export type Sort = FileTreeSortComparator;
   export type Theme = TreeThemeInput;
 }
+
+/**
+ * A ready-made menu for the tree's `contextMenu` snippet: the surface, the
+ * keyboard handling, the anchoring, and the four actions a file explorer is
+ * expected to have. Nothing here is privileged — it is the same snippet API a
+ * consumer would write, kept in the library because most of them want it.
+ */
+export const ContextMenu = {
+  Component: ContextMenuComponent,
+  actions: standardActions,
+};
+
+export namespace ContextMenu {
+  export type Action = MenuAction;
+  export type Props = MenuProps;
+  export type Style = MenuVariables;
+}
+
+/** The mutations the standard menu actions are made of. */
+export const entries = entryMutations;
 
 export const input = {
   prepare: prepareFileTreeInput,

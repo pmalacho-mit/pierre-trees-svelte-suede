@@ -79,11 +79,41 @@ export const mounted = (wait: Wait, model: Tree.Model): Promise<void> =>
  * The tree lives in a shadow root, where `@storybook/test`'s `userEvent` cannot
  * focus an element, so its own listeners are driven with real events instead.
  */
-export const rightClick = (element: HTMLElement): void => {
+/**
+ * The tree anchors a right-click menu to the pointer, so the event has to carry
+ * where it happened; without coordinates the menu lands at the viewport origin.
+ */
+export const rightClick = (element: HTMLElement): { x: number; y: number } => {
+  const { left, top, width, height } = element.getBoundingClientRect();
+  const at = { x: Math.round(left + width / 2), y: Math.round(top + height / 2) };
   element.dispatchEvent(
-    new MouseEvent("contextmenu", { bubbles: true, composed: true }),
+    new MouseEvent("contextmenu", {
+      bubbles: true,
+      composed: true,
+      clientX: at.x,
+      clientY: at.y,
+    }),
   );
+  return at;
 };
+
+/**
+ * The single floating trigger button follows whichever row is hovered, and the
+ * tree exposes that hover as a debug event so a test does not have to move a
+ * real pointer through a shadow root.
+ */
+export const hoverRow = (model: Tree.Model, path: string): void => {
+  shadowOf(model)
+    .querySelector("[data-file-tree-virtualized-root]")
+    ?.dispatchEvent(
+      new CustomEvent("file-tree-debug-set-context-menu-trigger", {
+        detail: { path },
+      }),
+    );
+};
+
+export const contextMenuTrigger = (model: Tree.Model): HTMLElement | null =>
+  shadowOf(model).querySelector('button[data-type="context-menu-trigger"]');
 
 export const typeInto = (input: HTMLInputElement, value: string): void => {
   input.value = value;

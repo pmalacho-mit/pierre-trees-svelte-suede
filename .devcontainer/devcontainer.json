@@ -17,6 +17,7 @@
         "editor.tabSize": 2,
         "files.autoSave": "off",
         "svelte.enable-ts-plugin": true,
+        "svelte.plugin.typescript.enable": true,
         "svelte.ask-to-enable-ts-plugin": false,
         "[javascript]": {
           "editor.defaultFormatter": "esbenp.prettier-vscode"

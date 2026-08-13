@@ -59,6 +59,22 @@ drag, virtualization. `src/lib/testing.ts` holds the shadow-root readers they
 share, since the tree renders inside a shadow root that ordinary queries and
 `userEvent` cannot reach.
 
+### The showcase
+
+`src/lib/showcase/` rebuilds every example from
+[trees.software](https://trees.software/) on top of this library — flattening,
+git status, context menu composition, drag and drop, the three search modes,
+virtualization, accessibility, icon sets, Shiki themes, CSS-variable styling and
+density. They use the same file list, palettes and expanded paths the Pierre
+docs do, so a panel here should look like the panel there.
+
+`showcase/ContextMenu.svelte` is the menu itself, and it is worth reading: the
+tree slots it into an anchor element it has already positioned over the row, so
+the menu needs no coordinates of its own — only which corner of that anchor to
+hang from. A screenshot cannot show it (captures flatten the light DOM and the
+open menu lives in the tree's `context-menu` slot), so open
+`/tests?component=/src/lib/showcase/ContextMenu.test.svelte` to see it.
+
 > [!NOTE]
 > `import.meta.glob` in the tests route is resolved once per dev server, so
 > restart `npm run dev` after adding a new `.test.svelte` file.

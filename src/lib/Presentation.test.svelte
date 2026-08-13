@@ -17,6 +17,11 @@
     }
   }
 
+  const spread: Tree.Style = {
+    "--trees-selected-bg-override": "rgb(255, 0, 128)",
+    "--trees-font-size-override": "17px",
+  };
+
   const fill = "height: 100%; display: block;";
 </script>
 
@@ -165,5 +170,44 @@
 >
   {#snippet vest({ model }: Pocket)}
     <Tree.Component {model} style={fill} />
+  {/snippet}
+</Sweater>
+
+<Sweater config category="CSS variables as props" orientation="vertical" />
+
+<Sweater
+  name="every custom property the tree reads is a typed prop"
+  body={async ({ set, delay, expect, note, capture }) => {
+    const { model } = set(new Pocket({ paths: project }));
+    await mounted(delay, model);
+    await delay({ frames: 2 });
+
+    note("Written as an attribute, Svelte turns `--x=\"y\"` into a declaration the tree inherits.");
+    const host = model.tree.getFileTreeContainer();
+    if (!host) throw new Error("expected a mounted host");
+    expect(getComputedStyle(host).getPropertyValue("--trees-bg-override").trim()).toBe(
+      "rgb(20, 20, 30)",
+    );
+
+    note("Spread from an object they arrive as real props, and land on the host inline.");
+    expect(host.style.getPropertyValue("--trees-selected-bg-override")).toBe(
+      spread["--trees-selected-bg-override"],
+    );
+    expect(host.style.getPropertyValue("--trees-font-size-override")).toBe("17px");
+
+    note("The component keeps `--trees-item-height` and `--trees-density-override` for itself — `density` and `itemHeight` are the options that move those.");
+    expect(host.style.getPropertyValue("--trees-item-height")).toBe(
+      `${model.tree.getItemHeight()}px`,
+    );
+    capture("png");
+  }}
+>
+  {#snippet vest({ model }: Pocket)}
+    <Tree.Component
+      {model}
+      {...spread}
+      style={fill}
+      --trees-bg-override="rgb(20, 20, 30)"
+    />
   {/snippet}
 </Sweater>

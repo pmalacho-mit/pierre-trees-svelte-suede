@@ -8,14 +8,18 @@ path-first, virtualized file tree from the Pierre team.
 
 `@pierre/trees` already owns the hard parts: a path-keyed store, virtualized
 rendering into a shadow root, search, drag and drop, inline renaming, git status
-and icons. What it does not have is a Svelte face. This library adds two things
-and gets out of the way:
+and icons. What it does not have is a Svelte face. This library adds that and
+gets out of the way:
 
 - **`Tree.Model`** — a TypeScript class that owns a `FileTree` and republishes
   the parts you would otherwise have to poll (`focus`, `selection`, `search`,
   `rows`) as Svelte state, plus a typed `subscribe` for everything that happens.
-- **`Tree.Component`** — mounts a model into a `<file-tree-container>` and fills
-  the tree's `header` and `context-menu` slots from Svelte snippets.
+- **`Tree.Component`** — mounts a model into a `<file-tree-container>`, fills the
+  tree's `header` and `context-menu` slots from Svelte snippets, and takes every
+  `--trees-*` custom property as a typed prop.
+- **`ContextMenu`** — the menu most explorers want, already wired to the tree.
+  Use it, extend its actions, or ignore it: nothing else depends on it, so a
+  build that never imports it never ships it.
 
 Anything not mirrored here is one property away: `model.tree` is the underlying
 `FileTree` instance, unwrapped.
@@ -27,9 +31,11 @@ Anything not mirrored here is one property away: `model.tree` is the underlying
 1. [Getting started](#1-getting-started)
 2. [`Tree.Model`](#2-treemodel)
 3. [`Tree.Component`](#3-treecomponent)
-4. [Events](#4-events)
-5. [Input, icons, theming, density](#5-input-icons-theming-density)
-6. [Types](#6-types)
+4. [Styling](#4-styling)
+5. [`ContextMenu`](#5-contextmenu)
+6. [Events](#6-events)
+7. [Input, icons, theming, density](#7-input-icons-theming-density)
+8. [Types](#8-types)
 
 ---
 
@@ -193,12 +199,13 @@ for a row that is currently on screen.
 </Tree.Component>
 ```
 
-| Prop          | Type                                              |
-| ------------- | ------------------------------------------------- |
-| `model`       | `Tree.Model` — required                           |
-| `header`      | `Snippet` — fills the tree's header slot          |
-| `contextMenu` | `Snippet<[item, context]>` — fills the menu slot  |
-| …rest         | any `HTMLAttributes<HTMLElement>`, spread on the host |
+| Prop           | Type                                                    |
+| -------------- | ------------------------------------------------------- |
+| `model`        | `Tree.Model` — required                                 |
+| `header`       | `Snippet` — fills the tree's header slot                |
+| `contextMenu`  | `Snippet<[item, context]>` — fills the menu slot         |
+| `--trees-*`    | `string` — every custom property the tree reads, see [Styling](#4-styling) |
+| …rest          | any `HTMLAttributes<HTMLElement>`, spread on the host    |
 
 Both snippets render in the light DOM and are slotted into the tree's shadow
 root, which is why they stay ordinary, reactive Svelte. Supplying `header`
@@ -210,7 +217,108 @@ configuration (`triggerMode`, `buttonVisibility`, `onOpen`, `onClose`) alone.
 
 ---
 
-## 4. Events
+## 4. Styling
+
+Every custom property `@pierre/trees` reads is an optional `string` prop, so an
+editor offers them and a typo is a type error:
+
+```svelte
+<Tree.Component
+  {model}
+  --trees-bg-override="oklch(20.5% 0 0)"
+  --trees-selected-bg-override="oklch(35% 0.08 250)"
+  --trees-font-size-override="13px"
+/>
+```
+
+Svelte compiles `--x="y"` on a component into an inherited declaration rather
+than a prop, which is why declaring them buys typing rather than behaviour. They
+also work spread from an object, in which case they land on the host inline:
+
+```svelte
+<script lang="ts">
+  const dark: Tree.Style = {
+    "--trees-bg-override": "oklch(20.5% 0 0)",
+    "--trees-fg-override": "oklch(98.5% 0 0)",
+  };
+</script>
+
+<Tree.Component {model} {...dark} />
+```
+
+The list is exactly the properties the stylesheet reads without declaring — the
+holes it leaves open. Two groups are deliberately absent:
+
+- **Resolved values** (`--trees-bg`, `--trees-fg`, the per-language icon
+  palette). The sheet declares these on `:host`, so an inherited value would
+  lose to its own rule. Use the matching `-override`, or `unsafeCSS`.
+- **`--trees-item-height` and `--trees-density-override`.** The component writes
+  both from the model; `density` and `itemHeight` in the options move them.
+
+`Tree.Style` is the whole set as a type, and `Tree.Variable` is the union of
+names.
+
+---
+
+## 5. `ContextMenu`
+
+The menu most file explorers want, ready for the `contextMenu` snippet: the
+surface, keyboard navigation, edge flipping, and the four standard actions.
+
+```svelte
+<script lang="ts">
+  import { ContextMenu, Tree } from "<path>/pierre-trees-svelte-suede";
+
+  const model = new Tree.Model({ paths, renaming: true });
+</script>
+
+<Tree.Component {model}>
+  {#snippet contextMenu(item, context)}
+    <ContextMenu.Component
+      {context}
+      actions={ContextMenu.actions({ model, item, context })}
+    />
+  {/snippet}
+</Tree.Component>
+```
+
+`ContextMenu.actions` returns **New file**, **New folder**, **Rename** and
+**Delete**, already wired — new entries land inside a directory and beside a
+file, and open straight into rename mode. Nothing about it is privileged: it
+returns a plain `ContextMenu.Action[]`, so extend it, reorder it, or replace it:
+
+```ts
+const actions = [
+  ...ContextMenu.actions({ model, item, context }),
+  { label: "Copy path", divided: true, run: () => copy(item.path) },
+];
+```
+
+| `Action` field | Meaning                                     |
+| -------------- | ------------------------------------------- |
+| `label`        | What the item reads                         |
+| `run`          | What it does                                |
+| `danger`       | Draws it in the destructive colour          |
+| `divided`      | Draws a divider above it                    |
+
+`entries` holds the mutations the standard actions are made of —
+`entries.add(model, item, "file" \| "folder")`, `entries.rename(model, item)`,
+`entries.remove(model, item)` — for building actions of your own.
+
+The surface follows the page's `color-scheme` and takes overrides the same way
+the tree does (`--trees-menu-bg`, `--trees-menu-fg`, `--trees-menu-border-color`,
+`--trees-menu-hover-bg`, `--trees-menu-danger-fg`, `--trees-menu-border-radius`,
+`--trees-menu-shadow`, `--trees-menu-min-width`, `--trees-menu-font-family`,
+`--trees-menu-font-size`), typed as `ContextMenu.Style`.
+
+It needs no coordinates: the tree slots it into an anchor element it has already
+positioned over the row, so the menu only says which corner of that anchor to
+hang from. Give the host no `overflow` if you want an open menu to be allowed
+past the panel's edge.
+
+---
+
+## 6. Events
 
 `model.subscribe(handlers)` takes a map and returns one unsubscribe for all of
 it. Handlers are fully typed by event name.
@@ -240,7 +348,7 @@ callbacks rather than replacing them, so a config that already supplies
 
 ---
 
-## 5. Input, icons, theming, density
+## 7. Input, icons, theming, density
 
 ```ts
 import { density, icons, input, theme } from "<path>/pierre-trees-svelte-suede";
@@ -264,7 +372,7 @@ or many resets. For styling, start with the host's CSS custom properties and
 
 ---
 
-## 6. Types
+## 8. Types
 
 Everything hangs off the `Tree` namespace, so one import covers the surface:
 

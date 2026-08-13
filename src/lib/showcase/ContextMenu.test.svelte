@@ -1,6 +1,6 @@
 <script lang="ts" module>
   import { Sweater } from "../../../sweater-vest-suede";
-  import { Tree } from "$release";
+  import { ContextMenu, Tree } from "$release";
   import {
     contextMenuTrigger,
     hoverRow,
@@ -9,9 +9,7 @@
     rendered,
     rightClick,
   } from "../testing";
-  import ContextMenu, { type Action } from "./ContextMenu.svelte";
   import Panel from "./Panel.svelte";
-  import { entries } from "./entries";
   import { expanded, sampleFileList } from "./demo-data";
 
   class Pocket {
@@ -26,25 +24,6 @@
         search: false,
         composition: { contextMenu: { enabled: true, triggerMode } },
       });
-    }
-
-    actions(item: Tree.ContextMenu["item"], close: () => void): Action[] {
-      const { model } = this;
-      const keepingFocusFor = (act: () => void) => () => {
-        close();
-        act();
-      };
-      return [
-        { label: "New file", run: keepingFocusFor(() => entries.add(model, item, "file")) },
-        { label: "New folder", run: keepingFocusFor(() => entries.add(model, item, "folder")) },
-        { label: "Rename", run: keepingFocusFor(() => entries.rename(model, item)) },
-        {
-          label: "Delete",
-          danger: true,
-          divided: true,
-          run: keepingFocusFor(() => entries.remove(model, item)),
-        },
-      ];
     }
   }
 
@@ -109,9 +88,9 @@
     {#snippet vest(pocket: Pocket)}
       <Panel model={pocket.model} {title}>
         {#snippet contextMenu(item, context)}
-          <ContextMenu
+          <ContextMenu.Component
             {context}
-            actions={pocket.actions(item, () => context.close({ restoreFocus: false }))}
+            actions={ContextMenu.actions({ model: pocket.model, item, context })}
           />
         {/snippet}
       </Panel>
@@ -146,9 +125,9 @@
   {#snippet vest(pocket: Pocket)}
     <Panel model={pocket.model} title="New file">
       {#snippet contextMenu(item, context)}
-        <ContextMenu
+        <ContextMenu.Component
           {context}
-          actions={pocket.actions(item, () => context.close({ restoreFocus: false }))}
+          actions={ContextMenu.actions({ model: pocket.model, item, context })}
         />
       {/snippet}
     </Panel>
@@ -181,9 +160,9 @@
   {#snippet vest(pocket: Pocket)}
     <Panel model={pocket.model} title="Delete">
       {#snippet contextMenu(item, context)}
-        <ContextMenu
+        <ContextMenu.Component
           {context}
-          actions={pocket.actions(item, () => context.close({ restoreFocus: false }))}
+          actions={ContextMenu.actions({ model: pocket.model, item, context })}
         />
       {/snippet}
     </Panel>

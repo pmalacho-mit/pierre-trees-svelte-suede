@@ -68,8 +68,7 @@
   }
 
   figure :global(file-tree-container) {
-    /* The positioning context slotted overlays — the context menu — lay out against. */
-    position: relative;
+    /* No `overflow` — an open context menu is allowed past the panel edge. */
     flex: 1;
     min-height: 0;
     padding-block: 0.75rem;

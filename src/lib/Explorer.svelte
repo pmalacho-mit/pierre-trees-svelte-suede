@@ -26,7 +26,7 @@
 </script>
 
 <script lang="ts">
-  import { Tree } from "$release";
+  import { ContextMenu, Tree } from "$release";
 
   const model = new Tree.Model({
     paths: repository,
@@ -54,24 +54,10 @@
     {/snippet}
 
     {#snippet contextMenu(item, context)}
-      <menu>
-        <button
-          onclick={() => {
-            model.rename(item.path);
-            context.close({ restoreFocus: false });
-          }}
-        >
-          Rename
-        </button>
-        <button
-          onclick={() => {
-            model.remove(item.path, { recursive: true });
-            context.close();
-          }}
-        >
-          Delete
-        </button>
-      </menu>
+      <ContextMenu.Component
+        {context}
+        actions={ContextMenu.actions({ model, item, context })}
+      />
     {/snippet}
   </Tree.Component>
 
@@ -111,26 +97,4 @@
     font-size: 0.85rem;
   }
 
-  menu {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0.25rem;
-    background: Canvas;
-    border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
-    border-radius: 0.375rem;
-  }
-
-  menu button {
-    text-align: left;
-    background: none;
-    border: 0;
-    padding: 0.25rem 0.75rem;
-    color: inherit;
-    cursor: pointer;
-  }
-
-  menu button:hover {
-    background: color-mix(in oklch, currentColor 12%, transparent);
-  }
 </style>

@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "sweater-vest-suede/templates/sveltekit/with-exclude-tests-routes-from-build.sh vite build",
     "preview": "vite preview",
+    "report": "sweater-vest-suede/report.sh --closet /tests",
     "prepare": "svelte-kit sync || echo ''",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"

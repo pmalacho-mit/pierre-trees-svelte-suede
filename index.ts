@@ -6,6 +6,8 @@ import {
   prepareFileTreeInput,
   preparePresortedFileTreeInput,
   themeToTreeStyles,
+  type ContextMenuButtonVisibility,
+  type ContextMenuTriggerMode,
   type FileTreeBatchOperation,
   type FileTreeCompositionOptions,
   type FileTreeDensity,
@@ -75,6 +77,8 @@ export namespace Tree {
   export type BatchOperation = FileTreeBatchOperation;
   export type Composition = FileTreeCompositionOptions;
   export type ContextMenu = ContextMenuTrigger;
+  export type TriggerMode = ContextMenuTriggerMode;
+  export type ButtonVisibility = ContextMenuButtonVisibility;
   export type Decoration = FileTreeRowDecorationRenderer;
   export type Density = FileTreeDensity;
   export type DragAndDrop = FileTreeDragAndDropConfig;

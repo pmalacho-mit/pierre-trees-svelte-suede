@@ -100,6 +100,27 @@ export const rightClick = (element: HTMLElement): { x: number; y: number } => {
   return at;
 };
 
+/** The three events a browser sends for one double click, in that order. */
+export const doubleClick = (element: HTMLElement): void => {
+  const { left, top, width, height } = element.getBoundingClientRect();
+  const at = { x: Math.round(left + width / 2), y: Math.round(top + height / 2) };
+  const beats = [
+    ["click", 1],
+    ["click", 2],
+    ["dblclick", 2],
+  ] as const;
+  for (const [type, detail] of beats)
+    element.dispatchEvent(
+      new MouseEvent(type, {
+        bubbles: true,
+        composed: true,
+        detail,
+        clientX: at.x,
+        clientY: at.y,
+      }),
+    );
+};
+
 /**
  * The single floating trigger button follows whichever row is hovered, and the
  * tree exposes that hover as a debug event so a test does not have to move a

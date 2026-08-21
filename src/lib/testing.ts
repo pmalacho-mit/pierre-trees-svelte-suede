@@ -37,6 +37,10 @@ export const rendered = {
       ]),
     ),
 
+  /** The tree's own scrolling surface — where the empty space below the rows is. */
+  surface: (model: Tree.Model): HTMLElement | null =>
+    shadowOf(model).querySelector("[data-file-tree-virtualized-scroll]"),
+
   searchInput: (model: Tree.Model): HTMLInputElement | null =>
     shadowOf(model).querySelector("[data-file-tree-search-input]"),
 
@@ -98,6 +102,40 @@ export const rightClick = (element: HTMLElement): { x: number; y: number } => {
     }),
   );
   return at;
+};
+
+const centre = (element: HTMLElement): { x: number; y: number } => {
+  const { left, top, width, height } = element.getBoundingClientRect();
+  return { x: Math.round(left + width / 2), y: Math.round(top + height / 2) };
+};
+
+/**
+ * The four events a browser sends for one drag, in that order.
+ *
+ * Both ends carry coordinates because the tree reads the row under the pointer
+ * from them, and one `DataTransfer` is shared because a real drag has one.
+ */
+export const dragTo = (from: HTMLElement, onto: HTMLElement): void => {
+  const dataTransfer = new DataTransfer();
+  const beats = [
+    ["dragstart", from],
+    ["dragover", onto],
+    ["drop", onto],
+    ["dragend", from],
+  ] as const;
+  for (const [type, element] of beats) {
+    const at = centre(element);
+    element.dispatchEvent(
+      new DragEvent(type, {
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+        dataTransfer,
+        clientX: at.x,
+        clientY: at.y,
+      }),
+    );
+  }
 };
 
 /** The three events a browser sends for one double click, in that order. */

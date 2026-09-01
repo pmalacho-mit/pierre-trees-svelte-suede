@@ -6,7 +6,7 @@
 [subrepo]
 	remote = https://github.com/pmalacho-mit/pierre-trees-svelte-suede
 	branch = release
-	commit = fc278f31fed391c105525b83447d001a38a21f81
-	parent = 0be097c40ece3ab6891ced7e793b6bb9ea51ecb0
+	commit = c1f14f2798ae657e9873f1e9fca1a07e8f32f825
+	parent = a9b292d253fd6220a3f07b09604165cb8f4e6c56
 	method = merge
 	cmdver = 0.4.9

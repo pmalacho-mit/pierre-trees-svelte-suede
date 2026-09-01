@@ -337,6 +337,30 @@ const actions = [
 | `danger`       | Draws it in the destructive colour          |
 | `divided`      | Draws a divider above it                    |
 
+### An action can also be a note
+
+An `Action` carrying `note: true` instead of `run` is a line the menu **says**
+rather than one it does — drawn muted, wrapping, and skipped by the keyboard,
+because a line that cannot be run is not a stop on the way to one that can.
+
+```ts
+const actions: ContextMenu.Action[] = [
+  { label: "Read-only: nothing here can be changed.", note: true },
+  { label: "Download", run: () => download(item) },
+];
+```
+
+It exists for the menu that is shorter than usual. A permission, a mode, a
+selection that only some items support — whatever the reason, the menu is where
+the reader is already looking when they go to find the item that is missing, so
+it is the one place worth spending a line on. `ContextMenu.isNote(action)`
+narrows one, which is what keeps `run` required on every action that is not one.
+
+Its colour is `--trees-menu-fg-muted`, defaulting to a mix of the menu's own
+text rather than to any theme key: a theme is free to give its section headers
+the same colour as its body text (GitHub Light spells both `#2f363d`), and a
+note at exactly the weight of the item below it is not a note.
+
 `entries` holds the mutations the standard actions are made of —
 `entries.add(model, item, "file" \| "folder")`, `entries.rename(model, item)`,
 `entries.remove(model, item)` — for building actions of your own.
@@ -355,13 +379,35 @@ the menu with nothing to wire up:
 | hover             | `--trees-bg-muted`                                      |
 | destructive       | `--trees-status-deleted`, the theme's git-deleted red    |
 | radius, font      | `--trees-border-radius`, `--trees-font-family`, `--trees-font-size` |
+| a note's text     | a mix of the menu's own text — see [notes](#an-action-can-also-be-a-note) |
 
-That works because the tree declares those on `:host` and the menu is slotted
-from the host's light DOM, so they inherit. Outside a tree it falls back to a
-neutral surface that follows the page's `color-scheme`.
+Inside the tree that is inheritance: the tree declares those on `:host`, and a
+menu slotted from the host's light DOM picks them up.
+
+**A menu drawn OUTSIDE the tree still wears the theme.** Some hosts have to
+lift it out — a panel that clips its overflow, a dock whose divider paints over
+it, anything that needs the top layer — and a menu rendered as a sibling of the
+host inherits none of the resolved variables above. So each row of that table
+is a chain rather than one name, and it keeps going: the tree's resolved
+variable, then the `--trees-*-override` a palette sets, then the
+`--trees-theme-*` a theme fills in. That last one is the link that matters out
+here, because `themeToTreeStyles` hands you exactly those — put its result on
+the menu's own wrapper and the menu resolves the same palette the tree does,
+with no shadow root in between:
+
+```svelte
+<!-- the menu, wherever you had to put it -->
+<div style={asDeclarations(themeToTreeStyles(theme))}>
+  <ContextMenu.Component {context} {actions} />
+</div>
+```
+
+With no theme and no palette at all, it falls back to a neutral surface that
+follows the page's `color-scheme`.
 
 Each is still overridable — `--trees-menu-bg`, `--trees-menu-fg`,
 `--trees-menu-border-color`, `--trees-menu-hover-bg`, `--trees-menu-danger-fg`,
+`--trees-menu-fg-muted`,
 `--trees-menu-border-radius`, `--trees-menu-shadow`, `--trees-menu-min-width`,
 `--trees-menu-font-family`, `--trees-menu-font-size` — typed as
 `ContextMenu.Style`, and props the same way the tree's are.
